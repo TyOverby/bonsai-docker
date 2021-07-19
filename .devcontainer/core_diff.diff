@@ -1,0 +1,45 @@
+diff --git a/core/src/command.ml b/core/src/command.ml
+index 593e9ad..be49d31 100644
+--- a/core/src/command.ml
++++ b/core/src/command.ml
+@@ -1592,6 +1592,8 @@ module Base = struct
+           in
+           call f arg_type
+         | Arg.Rest f -> gen (fun x -> Option.iter x ~f:(List.iter ~f)) escape
++        | Arg.Rest_all _ ->
++          failwith "Arg.Rest_all is not supported by Command.Spec.flags_of_args_exn"
+         | Arg.Tuple _ ->
+           failwith "Arg.Tuple is not supported by Command.Spec.flags_of_args_exn"
+         | ((Arg.Expand _)[@if ocaml_version >= (4, 05, 0)]) ->
+diff --git a/core/src/gc.ml b/core/src/gc.ml
+index 57543c0..dc05711 100644
+--- a/core/src/gc.ml
++++ b/core/src/gc.ml
+@@ -33,6 +33,7 @@ module Stat = struct
+       ; compactions : int
+       ; top_heap_words : int
+       ; stack_size : int
++      ; forced_major_collections: int
+       }
+     [@@deriving compare, hash, bin_io, sexp, fields]
+   end
+@@ -57,6 +58,7 @@ module Stat = struct
+     ; compactions = after.compactions - before.compactions
+     ; top_heap_words = after.top_heap_words - before.top_heap_words
+     ; stack_size = after.stack_size - before.stack_size
++    ; forced_major_collections = after.forced_major_collections - before.forced_major_collections
+     }
+   ;;
+ end
+diff --git a/core/src/gc.mli b/core/src/gc.mli
+index d51665b..fbefa5d 100644
+--- a/core/src/gc.mli
++++ b/core/src/gc.mli
+@@ -55,6 +55,7 @@ module Stat : sig
+     ; compactions : int (** Number of heap compactions since the program was started. *)
+     ; top_heap_words : int (** Maximum size reached by the major heap, in words. *)
+     ; stack_size : int (** Current size of the stack, in words. *)
++    ; forced_major_collections: int
+     }
+   [@@deriving bin_io, sexp, fields]
+ 
