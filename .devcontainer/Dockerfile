@@ -1,21 +1,26 @@
 FROM ocaml/opam:alpine-ocaml-4.12@sha256:97d4da55048befbda12adc18765b049a9eb53a878bcce58dbfecb06f363273e8
 
+# Set up user settings and install necessary packages
 USER root
 RUN sed -i 's-/home/opam:/sbin/nologin-/home/opam:/bin/bash-' /etc/passwd
-RUN apk add git neovim
+RUN apk add git neovim libffi-dev gmp-dev zlib-dev openssl-dev
 RUN mkdir -p ~/.cache/nvim
 
+# As the main user
 USER opam
-RUN opam pin add sexplib0 https://github.com/janestreet/sexplib0.git#master
-RUN opam pin add base https://github.com/janestreet/base.git#master
-RUN opam pin add sexplib https://github.com/janestreet/sexplib.git#master
-RUN opam pin add parsexp https://github.com/janestreet/parsexp.git
-RUN opam pin add bigarray-compat https://github.com/mirage/bigarray-compat.git
-RUN opam install dune merlin ocamlformat ocaml-lsp-server js_of_ocaml js_of_ocaml-ppx
+RUN mkdir -p ~/.cache/nvim
+
+RUN opam pin add sexplib0 https://github.com/janestreet/sexplib0.git#master\
+&& opam pin add base https://github.com/janestreet/base.git#master\
+&& opam pin add sexplib https://github.com/janestreet/sexplib.git#master\
+&& opam pin add parsexp https://github.com/janestreet/parsexp.git\
+&& opam pin add bigarray-compat https://github.com/mirage/bigarray-compat.git
+
+RUN opam install dune merlin ocamlformat ocaml-lsp-server js_of_ocaml js_of_ocaml-ppx\
+&& opam install fmt logs ctypes ctypes-foreign cryptokit jsonm\
+&& opam install ppxlib
 
 RUN mkdir vendor
-
-RUN echo '(lang dune 1.10)' > ~/dune-project
 
 RUN git clone https://github.com/janestreet/bonsai.git ./vendor/bonsai\
 && git clone https://github.com/janestreet/incr_dom.git ./vendor/incr_dom\
@@ -60,11 +65,9 @@ RUN git clone https://github.com/janestreet/bonsai.git ./vendor/bonsai\
 && git clone https://github.com/janestreet/async_js.git ./vendor/async_js\
 && git clone https://github.com/janestreet/time_now.git ./vendor/time_now\
 && git clone https://github.com/janestreet/splittable_random.git ./vendor/splittable_random\
-#&& git clone https://github.com/janestreet/sexplib.git ./vendor/sexplib\
 && git clone https://github.com/janestreet/jane-street-headers.git ./vendor/jane-street-headers\
 && git clone https://github.com/janestreet/base_bigstring.git ./vendor/base_bigstring\
 && git clone https://github.com/janestreet/int_repr.git ./vendor/int_repr\
-#&& git clone https://github.com/janestreet/parsexp.git ./vendor/parsexp\
 && git clone https://github.com/janestreet/incr_select.git ./vendor/incr_select\
 && git clone https://github.com/janestreet/incr_map.git ./vendor/incr_map\
 && git clone https://github.com/janestreet/abstract_algebra.git ./vendor/abstract_algebra\
@@ -75,9 +78,26 @@ RUN git clone https://github.com/janestreet/bonsai.git ./vendor/bonsai\
 && git clone https://github.com/inhabitedtype/angstrom.git ./vendor/angstrom\
 && git clone https://github.com/rgrinberg/stringext.git ./vendor/stringext\
 && git clone https://github.com/inhabitedtype/bigstringaf.git ./vendor/bigstringaf\
-#&& git clone https://github.com/mirage/bigarray-compat.git ./vendor/bigarray-compat\
 && git clone https://github.com/janestreet/stdio.git ./vendor/stdio\
-&& git clone https://github.com/janestreet/jst-config.git ./vendor/jst-config
+&& git clone https://github.com/janestreet/jst-config.git ./vendor/jst-config\
+&& git clone https://github.com/janestreet/core.git ./vendor/core\
+&& git clone https://github.com/mirage/ocaml-cohttp.git ./vendor/cohttp\
+&& git clone https://github.com/mirage/ocaml-ipaddr.git ./vendor/ipaddr\
+&& git clone https://github.com/mirage/ocaml-conduit.git ./vendor/conduit\
+&& git clone https://github.com/mirage/ocaml-magic-mime.git ./vendor/magic-mime\
+&& git clone https://github.com/janestreet/async_rpc_websocket.git ./vendor/async_rpc_websocket\
+&& git clone https://github.com/janestreet/cohttp_async_websocket.git ./vendor/cohttp_async_websocket\
+&& git clone https://github.com/janestreet/async.git ./vendor/async\
+&& git clone https://github.com/janestreet/ocaml_intrinsics.git ./vendor/ocaml_intrinsics\
+&& git clone https://github.com/janestreet/timezone.git ./vendor/timezone\
+&& git clone https://github.com/janestreet/spawn.git ./vendor/spawn\
+&& git clone https://github.com/janestreet/async_extra.git ./vendor/async_extra\
+&& git clone https://github.com/janestreet/async_ssl.git ./vendor/async_ssl\
+&& git clone https://github.com/janestreet/async_unix.git ./vendor/async_unix\
+&& git clone https://github.com/janestreet/async_websocket.git ./vendor/async_websocket\
+&& git clone https://github.com/hannesm/domain-name.git ./vendor/domain-name\
+&& git clone https://github.com/mirage/ocaml-base64.git ./vendor/base64\
+&& git clone https://github.com/janestreet/ocaml-embed-file ./vendor/embed-file
 
 
 RUN cd ~/vendor/bonsai && git checkout 761d04847d5f947318b64c0a46dffa17ad413536 && rm dune-project && mv bonsai.opam ~/\
@@ -123,11 +143,9 @@ RUN cd ~/vendor/bonsai && git checkout 761d04847d5f947318b64c0a46dffa17ad413536 
 && cd ~/vendor/async_js && git checkout master && rm dune-project && mv async_js.opam ~/\
 && cd ~/vendor/time_now && git checkout master && rm dune-project && mv time_now.opam ~/\
 && cd ~/vendor/splittable_random && git checkout master && rm dune-project && mv splittable_random.opam ~/\
-#&& cd ~/vendor/sexplib && git checkout master && rm dune-project && mv sexplib.opam ~/\
 && cd ~/vendor/jane-street-headers && git checkout master && rm dune-project && mv jane-street-headers.opam ~/\
 && cd ~/vendor/base_bigstring && git checkout master && rm dune-project && mv base_bigstring.opam ~/\
 && cd ~/vendor/int_repr && git checkout master && rm dune-project && mv int_repr.opam ~/\
-#&& cd ~/vendor/parsexp && git checkout master && rm dune-project && mv parsexp.opam ~/\
 && cd ~/vendor/incr_select && git checkout master && rm dune-project && mv incr_select.opam ~/\
 && cd ~/vendor/incr_map && git checkout master && rm dune-project && mv incr_map.opam ~/\
 && cd ~/vendor/abstract_algebra && git checkout master && rm dune-project && mv abstract_algebra.opam ~/\
@@ -138,72 +156,9 @@ RUN cd ~/vendor/bonsai && git checkout 761d04847d5f947318b64c0a46dffa17ad413536 
 && cd ~/vendor/angstrom && git checkout master && rm dune-project && mv angstrom.opam ~/ && mv angstrom-async.opam ~/ && mv angstrom-unix.opam ~/\
 && cd ~/vendor/stringext && git checkout master && rm dune-project && mv stringext.opam ~/\
 && cd ~/vendor/bigstringaf && git checkout master && rm dune-project && mv bigstringaf.opam ~/ \
-#&& cd ~/vendor/bigarray-compat && git checkout master && rm dune-project && mv bigarray-compat.opam ~/\
 && cd ~/vendor/stdio && git checkout master && rm dune-project && mv stdio.opam ~/\
-&& cd ~/vendor/jst-config && git checkout master && rm dune-project && mv jst-config.opam ~/
-
-
-## PATCHES 
-
-# Core is missing some fields and constructors
-COPY ./core_diff.diff /home/opam
-RUN cd ~/vendor/core_kernel && git apply ~/core_diff.diff
-
-# Annotate packages for ppx binaries
-run sed -i 's/install/install (package ppx_jane)/g' vendor/ppx_jane/bin/dune\
-&& sed -i 's/install/install (package ppx_base)/g' vendor/ppx_base/bin/dune\
-&& sed -i 's/install/install (package jst-config)/g' vendor/jst-config/src/dune
-
-# Bigstringaf patches
-RUN rm -rf vendor/bigstringaf/lib/freestanding
-RUN sed -i 's/(foreign_stubs//g' vendor/bigstringaf/lib/dune\
-&& sed -i 's/(language c)//g' vendor/bigstringaf/lib/dune\
-&& sed -i 's/(names     bigstringaf_stubs)/(c_names bigstringaf_stubs)/g' vendor/bigstringaf/lib/dune\
-&& sed -i 's/(flags.*$//g' vendor/bigstringaf/lib/dune
-
-# Gen_js_api patches 
-RUN rm vendor/gen_js_api/dune
-RUN rm -rf vendor/gen_js_api/node-test  vendor/gen_js_api/ppx-test
-RUN sed -i 's/ojs/gen_js_api/g' vendor/gen_js_api/lib/dune \
-&& sed -i 's/gen_js_api_runtime.js/ojs_runtime.js/g' vendor/gen_js_api/lib/dune \
-&& sed -i 's/ojs/gen_js_api/g' vendor/gen_js_api/ppx-driver/dune \
-&& sed -i 's/ojs/gen_js_api/g' vendor/gen_js_api/ppx-lib/dune \
-&& sed -i 's/(foreign_stubs//g' vendor/gen_js_api/lib/dune \
-&& sed -i 's/(language c)//g' vendor/gen_js_api/lib/dune \
-&& sed -i 's/(names gen_js_api_runtime_stubs))/(c_names ojs_runtime_stubs)/g' vendor/gen_js_api/lib/dune
-
-# Angstrom patches
-RUN rm -rf vendor/angstrom/lwt
-
-## CLIENT
-RUN echo '(env (dev (flags (:standard -w -16))))' > ~/dune
-RUN opam install ppxlib
-RUN bash -c "source ~/.profile && cd vendor/bonsai/examples/hello_world && dune build main.bc.js"
-
-
-
-
-RUN git clone https://github.com/janestreet/core.git ./vendor/core\
-&& git clone https://github.com/mirage/ocaml-cohttp.git ./vendor/cohttp\
-&& git clone https://github.com/mirage/ocaml-ipaddr.git ./vendor/ipaddr\
-&& git clone https://github.com/mirage/ocaml-conduit.git ./vendor/conduit\
-&& git clone https://github.com/mirage/ocaml-magic-mime.git ./vendor/magic-mime\
-&& git clone https://github.com/janestreet/async_rpc_websocket.git ./vendor/async_rpc_websocket\
-&& git clone https://github.com/janestreet/cohttp_async_websocket.git ./vendor/cohttp_async_websocket\
-&& git clone https://github.com/janestreet/async.git ./vendor/async\
-&& git clone https://github.com/janestreet/ocaml_intrinsics.git ./vendor/ocaml_intrinsics\
-&& git clone https://github.com/janestreet/timezone.git ./vendor/timezone\
-&& git clone https://github.com/janestreet/spawn.git ./vendor/spawn\
-&& git clone https://github.com/janestreet/async_extra.git ./vendor/async_extra\
-&& git clone https://github.com/janestreet/async_ssl.git ./vendor/async_ssl\
-&& git clone https://github.com/janestreet/async_unix.git ./vendor/async_unix\
-&& git clone https://github.com/janestreet/async_websocket.git ./vendor/async_websocket\
-&& git clone https://github.com/hannesm/domain-name.git ./vendor/domain-name\
-&& git clone https://github.com/mirage/ocaml-base64.git ./vendor/base64\
-&& git clone https://github.com/janestreet/ocaml-embed-file ./vendor/embed-file\
-&& true
-
-RUN cd ~/vendor/core && rm dune-project && mv core.opam ~/\
+&& cd ~/vendor/jst-config && git checkout master && rm dune-project && mv jst-config.opam ~/\
+&& cd ~/vendor/core && rm dune-project && mv core.opam ~/\
 && cd ~/vendor/cohttp && rm dune-project && mv cohttp.opam ~/ && mv cohttp-async.opam ~/ \ 
 && cd ~/vendor/conduit && rm dune-project && mv conduit.opam ~/ && mv conduit-async.opam ~/ \ 
 && cd ~/vendor/ipaddr && rm dune-project && mv ipaddr.opam ~/ && mv macaddr.opam ~/ && mv ipaddr-sexp.opam ~/ && mv macaddr-sexp.opam ~/ && mv ipaddr-cstruct.opam ~/ && mv macaddr-cstruct.opam ~/ \
@@ -220,12 +175,42 @@ RUN cd ~/vendor/core && rm dune-project && mv core.opam ~/\
 && cd ~/vendor/ocaml_intrinsics && rm dune-project && mv ocaml_intrinsics.opam ~/\
 && cd ~/vendor/domain-name && rm dune-project && mv domain-name.opam ~/\
 && cd ~/vendor/base64 && rm dune-project && mv base64.opam ~/\
-&& cd ~/vendor/embed-file && rm dune-project && mv ocaml-embed-file.opam ~/\
-&& true
+&& cd ~/vendor/embed-file && rm dune-project && mv ocaml-embed-file.opam ~/
 
+# PATCHES 
+## Core is missing some fields and constructors
+COPY ./core_diff.diff /home/opam
+RUN cd ~/vendor/core_kernel && git apply ~/core_diff.diff
 
-RUN rm vendor/core/dune
-RUN rm -rf vendor/cohttp/cohttp/test\
+## Annotate packages for ppx binaries
+run sed -i 's/install/install (package ppx_jane)/g' vendor/ppx_jane/bin/dune\
+&& sed -i 's/install/install (package ppx_base)/g' vendor/ppx_base/bin/dune\
+&& sed -i 's/install/install (package jst-config)/g' vendor/jst-config/src/dune
+
+## Bigstringaf patches
+RUN rm -rf vendor/bigstringaf/lib/freestanding
+RUN sed -i 's/(foreign_stubs//g' vendor/bigstringaf/lib/dune\
+&& sed -i 's/(language c)//g' vendor/bigstringaf/lib/dune\
+&& sed -i 's/(names     bigstringaf_stubs)/(c_names bigstringaf_stubs)/g' vendor/bigstringaf/lib/dune\
+&& sed -i 's/(flags.*$//g' vendor/bigstringaf/lib/dune
+
+## Gen_js_api patches 
+RUN rm vendor/gen_js_api/dune
+RUN rm -rf vendor/gen_js_api/node-test  vendor/gen_js_api/ppx-test
+RUN sed -i 's/ojs/gen_js_api/g' vendor/gen_js_api/lib/dune \
+&& sed -i 's/gen_js_api_runtime.js/ojs_runtime.js/g' vendor/gen_js_api/lib/dune \
+&& sed -i 's/ojs/gen_js_api/g' vendor/gen_js_api/ppx-driver/dune \
+&& sed -i 's/ojs/gen_js_api/g' vendor/gen_js_api/ppx-lib/dune \
+&& sed -i 's/(foreign_stubs//g' vendor/gen_js_api/lib/dune \
+&& sed -i 's/(language c)//g' vendor/gen_js_api/lib/dune \
+&& sed -i 's/(names gen_js_api_runtime_stubs))/(c_names ojs_runtime_stubs)/g' vendor/gen_js_api/lib/dune
+
+## Angstrom patches
+RUN rm -rf vendor/angstrom/lwt
+
+## cohttp / conduit / base64
+RUN rm vendor/core/dune \
+&& rm -rf vendor/cohttp/cohttp/test\
 && rm -rf vendor/cohttp/cohttp-async/test\
 && rm -rf vendor/cohttp/cohttp-async/bin\
 && rm -rf vendor/cohttp/cohttp-lwt\
@@ -241,28 +226,25 @@ RUN rm -rf vendor/cohttp/cohttp/test\
 && rm -rf vendor/base64/test\
 && true
 
-RUN sudo apk add libffi-dev gmp-dev zlib-dev openssl-dev
-#RUN opam pin ctypes https://github.com/ocamllabs/ocaml-ctypes
-#RUN opam pin ctypes-foreign https://github.com/ocamllabs/ocaml-ctypes
-#RUN opam pin add async ~/vendor/async
-#RUN opam pin add core ~/vendor/core
-#RUN opam pin add core_kernel ~/vendor/core_kernel
-#RUN opam pin add async_ssl https://github.com/janestreet/async_ssl.git
-RUN opam install fmt logs ctypes ctypes-foreign cryptokit jsonm
-
+## spawn
 RUN sed -i 's/(foreign_stubs//g' vendor/spawn/src/dune\
 && sed -i 's/(language c)//g' vendor/spawn/src/dune\
 && sed -i 's/(names spawn_stubs))/(c_names spawn_stubs)/g' vendor/spawn/src/dune\
 && rm -rf vendor/spawn/test \
 && true
 
-RUN sed -i 's/ctypes.foreign.threaded/ctypes.foreign/g' vendor/async_ssl/bindings/dune
-run sed -i 's/executables/executables (package ppx_jane)/g' vendor/embed-file/bin/dune
-run echo 'module Cryptokit=Cryptokit' > vendor/async_websocket/src/crypto.ml
-run echo 'module Foreign=Foreign' > vendor/async_ssl/bindings/ctypes_foreign_threaded_flat.ml
-
+## ctypes / async_ssl / async_websocket
 COPY ./core_thread_diff.diff /home/opam
-RUN cd ~/vendor/core && git apply ~/core_thread_diff.diff
-RUN rm vendor/async_ssl/bindings/ctypes_foreign_threaded_flat.ml
+RUN sed -i 's/ctypes.foreign.threaded/ctypes.foreign/g' vendor/async_ssl/bindings/dune\
+&& sed -i 's/executables/executables (package ppx_jane)/g' vendor/embed-file/bin/dune\
+&& echo 'module Cryptokit=Cryptokit' > vendor/async_websocket/src/crypto.ml\
+&& echo 'module Foreign=Foreign' > vendor/async_ssl/bindings/ctypes_foreign_threaded_flat.ml\
+&& rm vendor/async_ssl/bindings/ctypes_foreign_threaded_flat.ml\
+&& cd ~/vendor/core && git apply ~/core_thread_diff.diff\
+&& true
 
+# FINALLY
+RUN echo '(lang dune 1.10)' > ~/dune-project
+RUN echo '(env (dev (flags (:standard -w -16))))' > ~/dune
+RUN bash -c "source ~/.profile && cd vendor/bonsai/examples/hello_world && dune build main.bc.js"
 RUN bash -c "source ~/.profile && cd vendor/bonsai/examples/open_source/rpc_chat && dune build server/bin/main.exe"
