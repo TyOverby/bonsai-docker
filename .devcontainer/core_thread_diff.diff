@@ -1,0 +1,45 @@
+diff --git a/core_thread/src/core_thread.mli b/core_thread/src/core_thread.mli
+index 57d0750..149c126 100644
+--- a/core_thread/src/core_thread.mli
++++ b/core_thread/src/core_thread.mli
+@@ -58,7 +58,7 @@ val delay : float -> unit
+ val join : t -> unit
+ (** [join th] suspends the execution of the calling thread
+     until the thread [th] has terminated. *)
+-
++(*
+ val wait_read : Unix.file_descr -> unit
+ (** See {!Thread.wait_write}.*)
+ 
+@@ -67,6 +67,7 @@ val wait_write : Unix.file_descr -> unit
+     one character is available for reading ({!Thread.wait_read}) or
+     one character can be written without blocking ([wait_write])
+     on the given Unix file descriptor. *)
++*)
+ 
+ val wait_timed_read : Unix.file_descr -> float -> bool
+ (** See {!Thread.wait_timed_write}.*)
+diff --git a/core_unix/src/core_unix.ml b/core_unix/src/core_unix.ml
+index edd7c6b..95a17af 100644
+--- a/core_unix/src/core_unix.ml
++++ b/core_unix/src/core_unix.ml
+@@ -2649,6 +2649,7 @@ type socket_bool_option = Unix.socket_bool_option =
+   | SO_ACCEPTCONN
+   | TCP_NODELAY
+   | IPV6_ONLY
++  | SO_REUSEPORT
+ [@@deriving sexp]
+ 
+ type socket_int_option = Unix.socket_int_option =
+diff --git a/core_unix/src/core_unix.mli b/core_unix/src/core_unix.mli
+index 9bdf390..aae60ff 100644
+--- a/core_unix/src/core_unix.mli
++++ b/core_unix/src/core_unix.mli
+@@ -1636,6 +1636,7 @@ type socket_bool_option =
+   | SO_ACCEPTCONN          (** Report whether socket listening is enabled *)
+   | TCP_NODELAY            (** Control the Nagle algorithm for TCP sockets *)
+   | IPV6_ONLY              (** Forbid binding an IPv6 socket to an IPv4 address *)
++  | SO_REUSEPORT
+ [@@deriving sexp]
+ 
+ (** The socket options that can be consulted with {!UnixLabels.getsockopt_int}
